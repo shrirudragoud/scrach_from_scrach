@@ -1,0 +1,32 @@
+{
+  "name": "@codeblocks/runtime",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Worker, analyzer client, controller, Zustand slice and Monaco binding for the block view.",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./monaco": "./src/monaco.ts",
+    "./node": "./src/node.ts"
+  },
+  "bin": {
+    "codeblocks-assets": "./scripts/copy-assets.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build:worker": "node scripts/build-worker.mjs"
+  },
+  "dependencies": {
+    "@codeblocks/core": "*",
+    "tree-sitter-wasms": "0.1.13",
+    "web-tree-sitter": "0.22.6"
+  },
+  "peerDependencies": {
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0",
+    "zustand": "^5.0.0"
+  }
+}
