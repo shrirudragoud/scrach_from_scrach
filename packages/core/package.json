@@ -1,0 +1,19 @@
+{
+  "name": "@codeblocks/core",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-agnostic code → block-scene engine (parse, translate, lay out). No DOM, no bundler assumptions.",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./validate": "./src/validate.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "web-tree-sitter": "0.22.6",
+    "tree-sitter-wasms": "0.1.13"
+  }
+}

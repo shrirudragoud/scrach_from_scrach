@@ -1,1 +1,7 @@
 node_modules/
+.next/
+dist/
+*.tsbuildinfo
+apps/web/public/codeblocks/
+apps/web/public/monaco/
+test-results/

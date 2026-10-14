@@ -1,21 +1,22 @@
 {
-  "name": "code-visualizer",
-  "version": "0.1.0",
-  "description": "Turns embedded source code (Arduino .ino first; C and MicroPython next) into an auto-laid-out node flowchart.",
+  "name": "codeblocks",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Kid-friendly code → block flowchart for the web IDE (core, runtime, Konva renderer, React glue).",
   "type": "module",
-  "main": "src/index.js",
-  "exports": {
-    ".": "./src/index.js",
-    "./viewer": "./src/render/viewer.js",
-    "./node": "./src/node.js"
-  },
+  "workspaces": ["packages/*", "apps/*"],
   "scripts": {
-    "test": "node --test test/*.test.mjs",
-    "demo": "node demo/server.mjs",
-    "scene": "node scripts/dump-scene.mjs"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build:assets": "npm run build:worker -w @codeblocks/runtime",
+    "corpus": "node --experimental-strip-types packages/core/scripts/corpus.ts",
+    "dev": "npm run dev -w web",
+    "e2e": "npm run e2e -w web"
   },
-  "dependencies": {
-    "tree-sitter-wasms": "0.1.13",
-    "web-tree-sitter": "0.22.6"
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "^3.2.4",
+    "@types/node": "^22.0.0"
   }
 }
