@@ -1,5 +1,6 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BlocksController, blocksAdapter, createBlocksStore, findNodeAt } from '../src/index.ts';
+import { BlocksController, findNodeAt } from '../src/index.ts';
+import { blocksAdapter, createBlocksStore } from '../src/zustand.ts';
 import type { Analyzer } from '../src/index.ts';
 import { createNodeAnalyzer } from '../src/node.ts';
 import { AnalyzeError } from '@codeblocks/core';

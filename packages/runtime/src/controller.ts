@@ -6,8 +6,8 @@
 // It owns scheduling, staleness, selection that survives edits, and the guided run. It has no DOM and
 // no React/Monaco/Zustand imports.
 
-import { buildTour, AnalyzeError } from '@codeblocks/core';
-import type { ProjectFile, Scene, SceneMode, SceneNode, SourceLoc, TextMetrics } from '@codeblocks/core';
+import { buildTour, findNodeAt, AnalyzeError } from '@codeblocks/core';
+import type { ProjectFile, Scene, SceneMode, SourceLoc, TextMetrics } from '@codeblocks/core';
 import { validateScene } from '@codeblocks/core/validate';
 import type { Analyzer } from './analyzer.ts';
 import type { StateAdapter } from './store.ts';
@@ -23,6 +23,8 @@ export interface ControllerOptions {
   /** Run structural validation on every scene and report violations (enable in development). */
   validate?: boolean;
   onWarn?: (message: string, detail?: unknown) => void;
+  /** Called whenever an analysis fails (the last good scene stays on screen, marked stale). */
+  onError?: (error: { code: string; message: string }) => void;
 }
 
 export type RevealListener = (loc: SourceLoc, origin: 'block' | 'tour') => void;
@@ -116,6 +118,7 @@ export class BlocksController {
       const err = e instanceof AnalyzeError ? e : new AnalyzeError('internal', e instanceof Error ? e.message : String(e));
       const prev = this.o.state.get();
       this.o.state.patch({ status: 'error', stale: prev.scene !== null, error: { code: err.code, message: err.message } });
+      this.o.onError?.({ code: err.code, message: err.message });
     }
   }
 
@@ -199,19 +202,6 @@ export class BlocksController {
     this.revealListeners.clear();
     this.o.analyzer.dispose();
   }
-}
-
-/** Smallest block whose source range contains `file:line`. */
-export function findNodeAt(scene: Scene, file: string, line: number): SceneNode | null {
-  let best: SceneNode | null = null;
-  let bestSpan = Infinity;
-  for (const n of scene.nodes) {
-    const s = n.src;
-    if (!s || s.file !== file || line < s.start || line > s.end) continue;
-    const span = s.end - s.start;
-    if (span < bestSpan) { best = n; bestSpan = span; }
-  }
-  return best;
 }
 
 function sameMetrics(a: Partial<TextMetrics> | undefined, b: Partial<TextMetrics> | undefined): boolean {

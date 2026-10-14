@@ -1,65 +1,55 @@
 'use client';
 
-// React hooks. Both are React-19-StrictMode safe: nothing with side effects (workers, timers) is
-// created during render — only inside effects that are cleaned up.
+// React bindings for the headless handle. Nothing with side effects (workers, timers) is created
+// during render — only inside effects that are cleaned up, so React 18/19 StrictMode's
+// mount → unmount → mount cycle just creates and disposes one idle handle.
 
-import { useEffect, useMemo, useState } from 'react';
-import { useStore } from 'zustand';
-import type { StoreApi } from 'zustand/vanilla';
-import { BlocksController, blocksAdapter, createBlocksStore, createWorkerAnalyzer } from '@codeblocks/runtime';
-import type { Analyzer, BlocksSlice, BlocksState, ControllerOptions, WorkerAnalyzerOptions } from '@codeblocks/runtime';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { createCodeBlocks, initialBlocksState } from '@codeblocks/runtime';
+import type { BlocksState, CodeBlocks, CodeBlocksOptions } from '@codeblocks/runtime';
 
-/** A standalone block-view store (use when you are not composing the slice into your app store). */
-export function useBlocksStore(): StoreApi<BlocksSlice> {
-  return useMemo(() => createBlocksStore(), []);
-}
+/**
+ * Creates a handle for the lifetime of the component and disposes it on unmount.
+ * Returns null on the first render and during SSR; render the panel once it is non-null.
+ *
+ * Re-created only when `assetBase`, `assetVersion`, `analyzer` or `state` change. Callbacks
+ * (`onError`, `onWarn`) may change freely — the latest ones are always used.
+ */
+export function useCodeBlocks(options: CodeBlocksOptions = {}): CodeBlocks | null {
+  const [handle, setHandle] = useState<CodeBlocks | null>(null);
+  const latest = useRef(options);
+  latest.current = options;
+  const { assetBase, assetVersion, analyzer, state } = options;
 
-/** Subscribe to the block-view state held in any Zustand store that contains the `blocks` slice. */
-export function useBlocksState<T extends BlocksSlice>(store: StoreApi<T>): BlocksState;
-export function useBlocksState<T extends BlocksSlice, U>(store: StoreApi<T>, selector: (b: BlocksState) => U): U;
-export function useBlocksState<T extends BlocksSlice, U>(store: StoreApi<T>, selector?: (b: BlocksState) => U): BlocksState | U {
-  return useStore(store, (s: T) => (selector ? selector(s.blocks) : s.blocks));
-}
+  useEffect(() => {
+    const h = createCodeBlocks({
+      ...latest.current,
+      onError: (e) => latest.current.onError?.(e),
+      onWarn: latest.current.onWarn ? (m, d) => latest.current.onWarn?.(m, d) : undefined,
+    });
+    setHandle(h);
+    void h.warmUp();
+    return () => {
+      h.dispose();
+      setHandle(null);
+    };
+  }, [assetBase, assetVersion, analyzer, state]);
 
-export interface UseBlocksControllerOptions<T extends BlocksSlice> {
-  store: Pick<StoreApi<T>, 'getState' | 'setState' | 'subscribe'>;
-  /** Where the analyzer assets were copied (`codeblocks-assets public/codeblocks`). Default '/codeblocks/'. */
-  assetBase?: string;
-  /** Cache-buster for the worker/wasm URLs. */
-  assetVersion?: string;
-  /** Provide your own analyzer (tests, a shared worker, a server endpoint). */
-  analyzer?: Analyzer;
-  workerOptions?: WorkerAnalyzerOptions;
-  controller?: Omit<ControllerOptions, 'analyzer' | 'state'>;
+  return handle;
 }
 
 /**
- * Creates the analyzer + controller for the lifetime of the component and disposes them on unmount.
- * Returns null on the first render (and during SSR); render the panel once it is non-null.
+ * Subscribe to the block-view state. With a selector, return a primitive or an existing object from
+ * the state (never a freshly built one), otherwise React will re-render in a loop.
  */
-export function useBlocksController<T extends BlocksSlice>(opts: UseBlocksControllerOptions<T>): BlocksController | null {
-  const [controller, setController] = useState<BlocksController | null>(null);
-  const { store, assetBase, assetVersion, analyzer, workerOptions, controller: controllerOptions } = opts;
-
-  useEffect(() => {
-    const a = analyzer ?? createWorkerAnalyzer({ assetBase, version: assetVersion, ...workerOptions });
-    const c = new BlocksController({
-      analyzer: a,
-      state: blocksAdapter(store as StoreApi<T>),
-      validate: process.env.NODE_ENV !== 'production',
-      onWarn: (m, d) => console.warn('[codeblocks]', m, d),
-      ...controllerOptions,
-    });
-    setController(c);
-    void c.warmUp();
-    return () => {
-      c.dispose();
-      setController(null);
-    };
-    // The options object is expected to be stable (module constant / memoised); re-creating the
-    // controller on every render would restart the worker.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [store, assetBase, assetVersion, analyzer]);
-
-  return controller;
+export function useBlocksState(handle: CodeBlocks | null): BlocksState;
+export function useBlocksState<U>(handle: CodeBlocks | null, selector: (s: BlocksState) => U): U;
+export function useBlocksState<U>(handle: CodeBlocks | null, selector?: (s: BlocksState) => U): BlocksState | U {
+  const get = (): BlocksState => (handle ? handle.getState() : initialBlocksState);
+  const snapshot = (): BlocksState | U => (selector ? selector(get()) : get());
+  return useSyncExternalStore(
+    (notify) => (handle ? handle.subscribe(() => notify()) : () => undefined),
+    snapshot,
+    () => (selector ? selector(initialBlocksState) : initialBlocksState),
+  );
 }

@@ -1,11 +1,10 @@
-// The host app's Zustand store, with the block view composed in as one slice.
-// This is exactly how the IDE's existing store would adopt it.
+// The host app's own Zustand store (workspace state only). The block view keeps its state inside its
+// handle; hosts that want it in their store can compose `createBlocksSlice` from
+// '@codeblocks/runtime/zustand' (see INTEGRATION.md).
 
 import { create } from 'zustand';
 import type { StateCreator } from 'zustand';
 import type { ProjectFile } from '@codeblocks/core';
-import { createBlocksSlice } from '@codeblocks/runtime';
-import type { BlocksSlice } from '@codeblocks/runtime';
 import { DEFAULT_SAMPLE, SAMPLES } from './samples.ts';
 
 export interface WorkspaceSlice {
@@ -18,7 +17,7 @@ export interface WorkspaceSlice {
   setFileContent(name: string, content: string): void;
 }
 
-export type AppState = WorkspaceSlice & BlocksSlice;
+export type AppState = WorkspaceSlice;
 
 const createWorkspaceSlice: StateCreator<AppState, [], [], WorkspaceSlice> = (set) => {
   const first = SAMPLES[DEFAULT_SAMPLE];
@@ -36,7 +35,4 @@ const createWorkspaceSlice: StateCreator<AppState, [], [], WorkspaceSlice> = (se
   };
 };
 
-export const useAppStore = create<AppState>()((...a) => ({
-  ...createWorkspaceSlice(...a),
-  ...createBlocksSlice<AppState>()(...a),
-}));
+export const useAppStore = create<AppState>()((...a) => ({ ...createWorkspaceSlice(...a) }));

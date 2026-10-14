@@ -24,8 +24,9 @@ export const LanePanel = memo(function LanePanel({ lane, theme, highlighted }: {
   const chipW = role.label.length * 7.4 + 22;
   return (
     <Group x={lane.x} y={lane.y} listening={false}>
-      <Rect width={lane.w} height={lane.h} cornerRadius={30} fill={theme.panel.fill} stroke={highlighted ? role.color : theme.panel.stroke} strokeWidth={highlighted ? 3 : 1.5} />
-      <Rect x={34} y={0} width={Math.max(0, lane.w - 68)} height={5} cornerRadius={2.5} fill={role.color} />
+      <Rect width={lane.w} height={lane.h} cornerRadius={26} fill={role.color} opacity={highlighted ? 0.09 : 0.045} />
+      <Rect width={lane.w} height={lane.h} cornerRadius={26} stroke={role.color} strokeWidth={highlighted ? 2.5 : 1.25} opacity={highlighted ? 0.85 : 0.28} />
+      <Rect x={28} y={20} width={30} height={4} cornerRadius={2} fill={role.color} />
       <Text x={28} y={top(44, 19)} text={trunc(lane.name, Math.floor((lane.w - 56) / 11.5))} fontSize={19} fontStyle="900" fontFamily={theme.fonts.mono} fill={theme.text.lane} />
       <Text x={28} y={top(68, 13)} text={trunc(lane.description ?? '', Math.floor((lane.w - 56) / 7.2))} fontSize={13} fontStyle="700" fontFamily={theme.fonts.ui} fill={theme.text.laneSub} />
       <Group x={lane.w - 24 - chipW} y={24}>

@@ -5,3 +5,4 @@ dist/
 apps/web/public/codeblocks/
 apps/web/public/monaco/
 test-results/
+.pack/

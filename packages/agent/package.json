@@ -1,0 +1,20 @@
+{
+  "name": "@codeblocks/agent",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Lets an AI agent (your chat panel) read and navigate the block view: summaries, block details, search, selection. Read-only: edits stay in the host editor.",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codeblocks/core": "*"
+  },
+  "devDependencies": {
+    "@codeblocks/runtime": "*"
+  }
+}

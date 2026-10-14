@@ -14,6 +14,7 @@ export type { ProjectOptions } from './analyze.ts';
 export { registerLanguage, getLanguage, supportedLanguages, languageForFile } from './registry.ts';
 export { buildTour } from './graph/tour.ts';
 export type { TourStep, TourOptions } from './graph/tour.ts';
+export { findNodeAt } from './graph/query.ts';
 export { buildScene } from './graph/layout.ts';
 export { combineFiles, locate, mapLoc, toCombinedLine } from './project.ts';
 export type { Segment, CombinedSource } from './project.ts';

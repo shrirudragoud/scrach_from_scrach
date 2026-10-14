@@ -3,11 +3,12 @@
   "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Worker, analyzer client, controller, Zustand slice and Monaco binding for the block view.",
+  "description": "Headless block-view engine: worker, analyzer client, controller, createCodeBlocks() handle, Monaco binding.",
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
     "./monaco": "./src/monaco.ts",
+    "./zustand": "./src/zustand.ts",
     "./node": "./src/node.ts"
   },
   "bin": {
@@ -28,5 +29,10 @@
   "devDependencies": {
     "esbuild": "^0.28.0",
     "zustand": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "zustand": {
+      "optional": true
+    }
   }
 }

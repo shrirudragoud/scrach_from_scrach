@@ -1,5 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { BlocksController, blocksAdapter, createBlocksStore } from '../src/index.ts';
+import { BlocksController } from '../src/index.ts';
+import { blocksAdapter, createBlocksStore } from '../src/zustand.ts';
 import { attachMonaco } from '../src/monaco.ts';
 import type { EditorLike, ModelLike, MonacoLike } from '../src/monaco.ts';
 import { createNodeAnalyzer } from '../src/node.ts';

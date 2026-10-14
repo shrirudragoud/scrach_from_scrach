@@ -4,14 +4,15 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties, Ref } from 'react';
 import { BlocksCanvas, defaultTheme, loadThemeFonts, measureTextMetrics } from '@codeblocks/konva';
 import type { BlocksCanvasHandle, BlocksTheme } from '@codeblocks/konva';
-import type { BlocksController, BlocksState } from '@codeblocks/runtime';
+import type { CodeBlocks } from '@codeblocks/runtime';
+import { CanvasBoundary } from './CanvasBoundary.tsx';
+import { useBlocksState } from './hooks.ts';
 import { defaultLabels } from './labels.ts';
 import type { PanelLabels } from './labels.ts';
 
 export interface BlocksPanelProps {
-  controller: BlocksController;
-  /** The `blocks` slice of your store (use `useBlocksState(store)`). */
-  state: BlocksState;
+  /** The handle from `useCodeBlocks()` / `createCodeBlocks()`. */
+  blocks: CodeBlocks;
   theme?: BlocksTheme;
   labels?: Partial<PanelLabels>;
   /** Hide parts of the chrome. */
@@ -20,6 +21,8 @@ export interface BlocksPanelProps {
   onExportPng?: (dataUrl: string) => void;
   /** Imperative handle to the canvas (fit, zoom, centre on a block, export PNG). */
   canvasRef?: Ref<BlocksCanvasHandle>;
+  /** A rendering error was caught and replaced by a notice; report it to your logging. */
+  onError?: (error: Error) => void;
   className?: string;
   style?: CSSProperties;
 }
@@ -31,7 +34,8 @@ function download(dataUrl: string, name: string): void {
   a.click();
 }
 
-export function BlocksPanel({ controller, state, theme = defaultTheme, labels, features, onExportPng, canvasRef, className, style }: BlocksPanelProps) {
+export function BlocksPanel({ blocks, theme = defaultTheme, labels, features, onExportPng, canvasRef, onError, className, style }: BlocksPanelProps) {
+  const state = useBlocksState(blocks);
   const L = useMemo<PanelLabels>(() => ({ ...defaultLabels, ...labels }), [labels]);
   const f = { toolbar: true, explain: true, zoomButtons: true, ...features };
   const canvas = useRef<BlocksCanvasHandle | null>(null);
@@ -46,10 +50,10 @@ export function BlocksPanel({ controller, state, theme = defaultTheme, labels, f
     let alive = true;
     void loadThemeFonts(theme).then(() => {
       const metrics = measureTextMetrics(theme);
-      if (alive && metrics) controller.setOptions({ metrics });
+      if (alive && metrics) blocks.setOptions({ metrics });
     });
     return () => { alive = false; };
-  }, [controller, theme]);
+  }, [blocks, theme]);
 
   const selected = state.selectedId && state.scene ? state.scene.nodes.find((n) => n.id === state.selectedId) ?? null : null;
   const errors = state.diagnostics.length;
@@ -68,17 +72,19 @@ export function BlocksPanel({ controller, state, theme = defaultTheme, labels, f
   return (
     <section className={`cb-panel${className ? ` ${className}` : ''}`} style={style} data-testid="blocks-panel" data-status={state.status}>
       <div className="cb-canvas">
-        <BlocksCanvas
-          ref={setCanvas}
-          scene={state.scene}
-          selectedId={state.selectedId}
-          runningId={state.runningId}
-          runningEdgeId={state.runningEdgeId}
-          theme={theme}
-          topInset={f.toolbar ? 104 : 0}
-          stale={state.stale && state.status !== 'ready'}
-          onSelect={(id, { reveal }) => controller.select(id, { reveal })}
-        />
+        <CanvasBoundary resetKey={state.scene} message={L.crashed} retryLabel={L.retry} onError={onError}>
+          <BlocksCanvas
+            ref={setCanvas}
+            scene={state.scene}
+            selectedId={state.selectedId}
+            runningId={state.runningId}
+            runningEdgeId={state.runningEdgeId}
+            theme={theme}
+            topInset={f.toolbar ? 104 : 0}
+            stale={state.stale && state.status !== 'ready'}
+            onSelect={(id, { reveal }) => blocks.select(id, { reveal })}
+          />
+        </CanvasBoundary>
       </div>
 
       {empty && <div className="cb-empty">{L.noCode}</div>}
@@ -97,15 +103,11 @@ export function BlocksPanel({ controller, state, theme = defaultTheme, labels, f
 
       {f.toolbar && (
         <div className="cb-toolbar" role="toolbar" aria-label="Block view controls">
-          <button type="button" className={`cb-primary${state.playing ? ' cb-stop' : ''}`} onClick={() => controller.togglePlay()} disabled={!state.scene?.nodes.length} data-testid="blocks-play">
+          <button type="button" className={`cb-primary${state.playing ? ' cb-stop' : ''}`} onClick={() => blocks.togglePlay()} disabled={!state.scene?.nodes.length} data-testid="blocks-play">
             {state.playing ? L.stop : L.play}
           </button>
-          <div className="cb-seg" role="group">
-            <button type="button" aria-pressed={state.mode === 'kids'} className={state.mode === 'kids' ? 'on' : ''} onClick={() => controller.setOptions({ mode: 'kids' })} data-testid="blocks-mode-kids">{L.kidView}</button>
-            <button type="button" aria-pressed={state.mode === 'code'} className={state.mode === 'code' ? 'on' : ''} onClick={() => controller.setOptions({ mode: 'code' })} data-testid="blocks-mode-code">{L.codeView}</button>
-          </div>
           <label className="cb-tog">
-            <input type="checkbox" checked={state.showCode} disabled={state.mode === 'code'} onChange={(e) => controller.setOptions({ showCode: e.target.checked })} />
+            <input type="checkbox" checked={state.showCode} onChange={(e) => blocks.setOptions({ showCode: e.target.checked })} />
             {L.realCode}
           </label>
           <button type="button" onClick={() => canvas.current?.fit()}>{L.fit}</button>

@@ -1,15 +1,9 @@
-// State shape + Zustand integration.
+// State shape and the store contract.
 //
-// The block view keeps all of its state under ONE key (`blocks`) so it composes into an existing
-// app store without colliding with anything:
-//
-//   const useApp = create<AppState & BlocksSlice>()((...a) => ({ ...createAppSlice(...a), ...createBlocksSlice(...a) }));
-//   const controller = new BlocksController({ analyzer, state: blocksAdapter(useApp) });
-//
-// The controller itself only needs the tiny StateAdapter interface, so any other store works too.
+// The controller only needs the tiny StateAdapter interface, so it works with any store: the built-in
+// in-memory one (createMemoryAdapter, the default), your own store (write a 3-method adapter), or
+// Zustand (see '@codeblocks/runtime/zustand').
 
-import { createStore } from 'zustand/vanilla';
-import type { StateCreator, StoreApi } from 'zustand/vanilla';
 import type { Diagnostic, AnalyzeStats, Scene, SceneMode, TextMetrics } from '@codeblocks/core';
 
 export type BlocksStatus = 'idle' | 'analyzing' | 'ready' | 'error';
@@ -63,17 +57,20 @@ export interface StateAdapter {
   subscribe(listener: (state: BlocksState, prev: BlocksState) => void): () => void;
 }
 
-/** Zustand slice: `{ blocks }`. */
-export const createBlocksSlice = <T extends BlocksSlice>(): StateCreator<T, [], [], BlocksSlice> => () => ({ blocks: { ...initialBlocksState } });
-
-/** Standalone store (when the host app does not want to compose a slice). */
-export const createBlocksStore = (): StoreApi<BlocksSlice> => createStore<BlocksSlice>()(createBlocksSlice<BlocksSlice>());
-
-/** Adapt any Zustand store that contains the `blocks` slice. */
-export function blocksAdapter<T extends BlocksSlice>(api: Pick<StoreApi<T>, 'getState' | 'setState' | 'subscribe'>): StateAdapter {
+/** Dependency-free store: the default when the host does not bring its own. */
+export function createMemoryAdapter(initial: Partial<BlocksState> = {}): StateAdapter {
+  let state: BlocksState = { ...initialBlocksState, ...initial };
+  const listeners = new Set<(s: BlocksState, p: BlocksState) => void>();
   return {
-    get: () => api.getState().blocks,
-    patch: (partial) => api.setState((s) => ({ blocks: { ...s.blocks, ...partial } }) as Partial<T>),
-    subscribe: (listener) => api.subscribe((s, p) => { if (s.blocks !== p.blocks) listener(s.blocks, p.blocks); }),
+    get: () => state,
+    patch(partial) {
+      const prev = state;
+      state = { ...state, ...partial };
+      for (const l of [...listeners]) l(state, prev);
+    },
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => { listeners.delete(listener); };
+    },
   };
 }

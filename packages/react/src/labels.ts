@@ -4,8 +4,6 @@
 export interface PanelLabels {
   play: string;
   stop: string;
-  kidView: string;
-  codeView: string;
   realCode: string;
   fit: string;
   savePng: string;
@@ -20,13 +18,12 @@ export interface PanelLabels {
   stale: string;
   errorTitle: string;
   retry: string;
+  crashed: string;
 }
 
 export const defaultLabels: PanelLabels = {
   play: '▶ Watch it run',
   stop: '⏹ Stop',
-  kidView: '😀 Kid view',
-  codeView: '⌨️ Code view',
   realCode: 'real code',
   fit: '🔍 Fit',
   savePng: '⬇ PNG',
@@ -41,4 +38,5 @@ export const defaultLabels: PanelLabels = {
   stale: 'Showing your last good picture',
   errorTitle: 'Could not draw this',
   retry: 'Try again',
+  crashed: 'The block picture hit a problem and was paused. Your code is not affected.',
 };

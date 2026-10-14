@@ -4,10 +4,11 @@ Turns Arduino (`.ino`) code into a Scratch-style block flowchart that school kid
 
 ```
 packages/core      engine: parse → plain-English blocks → layout (no UI, no DOM)
-packages/runtime   worker, analyzer client, controller, Zustand slice, Monaco binding
+packages/runtime   headless createCodeBlocks() handle, worker client, Monaco binding (zustand optional)
 packages/konva     react-konva renderer (pan/zoom, selection, guided run, PNG)
 packages/react     <BlocksPanel/> + hooks
-apps/web           reference Next 16 app (Monaco + Zustand + panel) — copy ideas, not the app
+packages/agent     read + navigate tools for an AI chat agent
+apps/web           reference Next 16 app (Monaco + panel) — copy ideas, not the app
 ```
 
 ## Run it locally
@@ -28,18 +29,25 @@ Real-sketch run: `npm run corpus -- /path/to/arduino-examples`.
 
 ## Plug into the IDE
 
-1. Copy the four `packages/*` folders; add them to `transpilePackages`; `import '@codeblocks/react/styles.css'` once.
-2. `npx codeblocks-assets public/codeblocks` (worker + parser wasm → your public folder).
-3. Store: `...createBlocksSlice()(...a)` into your Zustand store.
-4. Page: `const controller = useBlocksController({ store: useAppStore })`, render `<BlocksPanel controller state={useBlocksState(useAppStore)} />`,
-   and `attachMonaco({ controller, state: blocksAdapter(useAppStore), editor, monaco, openFile })` when the editor mounts.
-   Feed files with `controller.setFiles(files, mainFile)`.
+```bash
+node scripts/pack.mjs            # builds .pack/tarballs/codeblocks-*.tgz (add --smoke to verify in a clean project)
+npx codeblocks-assets public/codeblocks   # in the host: worker + parser wasm → your public folder
+```
 
-See `apps/web/components/IdeDemo.tsx` for all of it in one file.
+```tsx
+const blocks = useCodeBlocks({ assetBase: '/codeblocks/' });
+useEffect(() => blocks?.setFiles(files, 'main.ino'), [blocks, files]);
+blocks?.attachMonaco({ editor, monaco, openFile });          // when the editor mounts
+{blocks && <BlocksPanel blocks={blocks} />}                   // handle is null until the first effect; or render your own from blocks.getState().scene
+createAgentTools(blocks)                                      // read + navigate tools for your chat agent
+```
+
+Full guide (CSP, theming, agent wiring, Scene JSON contract, versioning): [INTEGRATION.md](INTEGRATION.md).
+`apps/web/components/IdeDemo.tsx` is the whole thing in one file.
 
 ## Notes
 
-- Konva/Monaco are client-only: load the panel with `next/dynamic({ ssr: false })`.
+- Konva/Monaco are client-only: load the panel with `next/dynamic({ ssr: false })` (the handle itself is SSR-safe).
 - Serve `/codeblocks/*` with long cache headers (URLs carry `?v=`); serve Monaco from your own origin on school networks.
 - If a build fails on `/_not-found` with `useContext` of null, check `NODE_ENV` is `production` (some shells preset it).
 - Adding a language (MicroPython, C): `registerLanguage({ profile, extract })` in `packages/core`.
