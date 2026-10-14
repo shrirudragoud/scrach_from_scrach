@@ -1,0 +1,31 @@
+{
+  "name": "@codeblocks/konva",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "react-konva renderer for a @codeblocks/core Scene: blocks, edges, loop regions, pan/zoom, selection, guided-run highlight.",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codeblocks/core": "*"
+  },
+  "peerDependencies": {
+    "konva": "^10.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-konva": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "konva": "10.7.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-konva": "19.2.1"
+  }
+}

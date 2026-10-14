@@ -1,0 +1,39 @@
+{
+  "name": "web",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "assets": "codeblocks-assets public/codeblocks && node scripts/copy-monaco.mjs",
+    "predev": "npm run assets",
+    "dev": "next dev -p 3100",
+    "prebuild": "npm run assets",
+    "build": "next build",
+    "start": "next start -p 3100",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "e2e": "vitest run --config vitest.e2e.config.ts"
+  },
+  "dependencies": {
+    "@codeblocks/core": "*",
+    "@codeblocks/konva": "*",
+    "@codeblocks/react": "*",
+    "@codeblocks/runtime": "*",
+    "@fontsource/nunito": "^5.2.0",
+    "@monaco-editor/react": "4.7.0",
+    "konva": "10.7.1",
+    "monaco-editor": "0.55.1",
+    "next": "16.1.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-konva": "19.2.1",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "playwright-core": "^1.50.0",
+    "typescript": "5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

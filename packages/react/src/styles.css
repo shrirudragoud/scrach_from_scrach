@@ -1,0 +1,64 @@
+/* @codeblocks/react — import once:  import '@codeblocks/react/styles.css'
+   Themeable through CSS variables; every class is prefixed .cb- (panel) or .codeblocks- (editor). */
+
+.cb-panel {
+  --cb-ink: #25324d;
+  --cb-muted: #7a879c;
+  --cb-card: #fff;
+  --cb-green: #1fb58f;
+  --cb-dark: #25324d;
+  --cb-bg: #f2f5fb;
+  --cb-dot: #d3dbea;
+  --cb-radius: 22px;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  overflow: hidden;
+  color: var(--cb-ink);
+  font: 700 14px/1.4 Nunito, ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  background-color: var(--cb-bg);
+  background-image: radial-gradient(var(--cb-dot) 1.4px, transparent 1.4px);
+  background-size: 24px 24px;
+}
+.cb-canvas { position: absolute; inset: 0; }
+.cb-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--cb-muted); pointer-events: none; text-align: center; padding: 24px; }
+
+.cb-chips { position: absolute; top: 22px; left: 18px; display: flex; gap: 8px; z-index: 2; pointer-events: none; flex-wrap: wrap; }
+.cb-chip { pointer-events: auto; background: var(--cb-card); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 800; display: flex; gap: 8px; align-items: center; box-shadow: 0 2px 8px rgba(37, 50, 77, 0.1); }
+.cb-chip::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--cb-green); }
+.cb-chip.bad::before { background: #e5483d; }
+
+.cb-error { position: absolute; top: 70px; left: 18px; max-width: min(420px, calc(100% - 36px)); z-index: 2; background: #fff0ef; color: #b42318; border-radius: 16px; padding: 10px 14px; display: grid; gap: 2px; box-shadow: 0 4px 14px rgba(180, 35, 24, 0.15); }
+
+.cb-toolbar { position: absolute; right: 16px; top: 12px; background: var(--cb-dark); border-radius: 22px; padding: 7px; display: flex; gap: 6px; z-index: 3; align-items: center; max-width: calc(100% - 32px); flex-wrap: wrap; justify-content: flex-end; box-shadow: 0 8px 22px rgba(37, 50, 77, 0.25); }
+.cb-toolbar button { border: 0; border-radius: 14px; padding: 10px 14px; font: 800 13.5px Nunito, ui-rounded, system-ui, sans-serif; cursor: pointer; background: transparent; color: #d6def0; white-space: nowrap; }
+.cb-toolbar button:hover:not(:disabled) { background: #34425f; }
+.cb-toolbar button:disabled { opacity: 0.45; cursor: default; }
+.cb-toolbar button:focus-visible, .cb-zoom button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.cb-toolbar .cb-primary { background: var(--cb-green); color: #04382b; box-shadow: 0 3px 0 #118765; }
+.cb-toolbar .cb-primary:hover:not(:disabled) { background: #2dd3a9; }
+.cb-toolbar .cb-primary.cb-stop { background: #ff6b6b; color: #fff; box-shadow: 0 3px 0 #c94848; }
+.cb-seg { display: flex; background: #34425f; border-radius: 14px; padding: 3px; }
+.cb-seg button { padding: 7px 12px; }
+.cb-seg button.on { background: #fff; color: var(--cb-ink); }
+.cb-tog { display: flex; align-items: center; gap: 6px; color: #d6def0; font-size: 13px; padding: 0 8px; cursor: pointer; user-select: none; }
+.cb-tog input { accent-color: var(--cb-green); width: 16px; height: 16px; }
+
+.cb-zoom { position: absolute; right: 18px; bottom: 18px; display: flex; flex-direction: column; gap: 8px; z-index: 2; }
+.cb-zoom button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: #fff; color: var(--cb-ink); font: 800 20px system-ui; box-shadow: 0 3px 10px rgba(37, 50, 77, 0.16); cursor: pointer; }
+.cb-zoom button:hover { background: #f0f3f5; }
+
+.cb-explain { position: absolute; left: 18px; bottom: 18px; width: min(360px, calc(100% - 100px)); background: #fff; border-radius: var(--cb-radius); padding: 14px 16px; box-shadow: 0 8px 26px rgba(37, 50, 77, 0.2); z-index: 2; display: flex; gap: 12px; align-items: flex-start; }
+.cb-explain .cb-em { width: 46px; height: 46px; border-radius: 50%; background: #fff4cc; display: grid; place-items: center; font-size: 26px; flex: none; }
+.cb-explain h3 { margin: 0 0 2px; font-size: 16px; font-weight: 900; }
+.cb-explain p { margin: 0; font-weight: 700; color: #4b5a73; font-size: 13.5px; }
+.cb-explain code { display: block; margin-top: 8px; background: #f1f4fb; border-radius: 9px; padding: 5px 9px; font: 600 12px ui-monospace, Menlo, Consolas, monospace; overflow: auto; white-space: pre; }
+.cb-explain .cb-warn { margin-top: 8px; color: #c0352b; background: #ffecea; border-radius: 9px; padding: 6px 9px; font-size: 12.5px; }
+
+@media (max-width: 700px) { .cb-explain { display: none; } }
+@media (prefers-reduced-motion: reduce) { .cb-panel * { transition: none !important; } }
+
+/* Monaco line decorations (global: Monaco renders them outside React) */
+.codeblocks-line-selected { background: rgba(255, 191, 0, 0.28); border-left: 4px solid #ffbf00; }
+.codeblocks-line-running { background: rgba(31, 181, 143, 0.25); border-left: 4px solid #1fb58f; }
